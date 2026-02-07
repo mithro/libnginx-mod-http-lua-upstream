@@ -1,0 +1,81 @@
+name: Build Debian Package
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU for cross-architecture builds
+        if: matrix.arch != 'amd64'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Build Debian package (${{ matrix.arch }})
+        run: |
+          mkdir -p output
+          docker run --rm \
+            --platform linux/${{ matrix.arch }} \
+            -v "$PWD/debian:/src/debian:ro" \
+            -v "$PWD/output:/output" \
+            ubuntu:24.04 bash -exc '
+              # Install build dependencies
+              apt-get update
+              apt-get install -y --no-install-recommends \
+                dpkg-dev debhelper dh-sequence-nginx \
+                libluajit2-5.1-dev quilt wget ca-certificates
+
+              # Download upstream source
+              mkdir -p /build
+              wget -q -O /build/upstream.tar.gz \
+                https://github.com/openresty/lua-upstream-nginx-module/archive/refs/tags/v0.07.tar.gz
+
+              # Create orig tarball with Debian naming
+              cp /build/upstream.tar.gz \
+                /build/libnginx-mod-http-lua-upstream_0.07.orig.tar.gz
+
+              # Extract upstream source and add our debian/ packaging
+              cd /build
+              tar xzf upstream.tar.gz
+              mv lua-upstream-nginx-module-0.07 libnginx-mod-http-lua-upstream-0.07
+              cp -a /src/debian libnginx-mod-http-lua-upstream-0.07/debian
+              rm upstream.tar.gz
+
+              # Build the package
+              cd libnginx-mod-http-lua-upstream-0.07
+              dpkg-buildpackage -us -uc
+
+              # Copy artifacts to output
+              cp /build/libnginx-mod-http-lua-upstream_*.deb /output/
+              cp /build/libnginx-mod-http-lua-upstream_*.buildinfo /output/ || true
+              cp /build/libnginx-mod-http-lua-upstream_*.changes /output/ || true
+            '
+
+      - name: Verify package contents
+        run: |
+          echo "=== Package info ==="
+          dpkg-deb -I output/libnginx-mod-http-lua-upstream_*.deb
+          echo ""
+          echo "=== Package contents ==="
+          dpkg-deb -c output/libnginx-mod-http-lua-upstream_*.deb
+          echo ""
+          echo "=== Checking required files ==="
+          dpkg-deb -c output/libnginx-mod-http-lua-upstream_*.deb | grep -q ngx_http_lua_upstream_module.so
+          echo "PASS: ngx_http_lua_upstream_module.so present"
+          dpkg-deb -c output/libnginx-mod-http-lua-upstream_*.deb | grep -q mod-http-lua-upstream.conf
+          echo "PASS: mod-http-lua-upstream.conf present"
+
+      - name: Upload Debian package
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-package-${{ matrix.arch }}
+          path: output/*.deb
