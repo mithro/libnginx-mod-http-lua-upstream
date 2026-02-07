@@ -31,7 +31,7 @@ jobs:
               # Install build dependencies
               apt-get update
               apt-get install -y --no-install-recommends \
-                dpkg-dev debhelper dh-sequence-nginx \
+                build-essential dpkg-dev debhelper dh-sequence-nginx \
                 libluajit2-5.1-dev quilt wget ca-certificates
 
               # Download upstream source
