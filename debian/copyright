@@ -8,6 +8,12 @@ Copyright: 2014-2017 Yichun Zhang (agentzh) <agentzh@gmail.com>
            2014-2017 OpenResty Inc.
 License: BSD-2-Clause
 
+Files: debian/patches/add-ngx-http-lua-api-header.patch
+Comment: Vendored from lua-nginx-module v0.10.26 src/api/ngx_http_lua_api.h
+Copyright: 2014-2017 Yichun Zhang (agentzh) <agentzh@gmail.com>
+           2014-2017 OpenResty Inc.
+License: BSD-2-Clause
+
 Files: debian/*
 Copyright: 2026 Tim Ansell <me@mith.ro>
 License: BSD-2-Clause
