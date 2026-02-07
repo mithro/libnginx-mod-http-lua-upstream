@@ -1,0 +1,7 @@
+libnginx-mod-http-lua-upstream (0.07-1) unstable; urgency=medium
+
+  * Initial release.
+  * Package OpenResty lua-upstream-nginx-module v0.07 as a Debian
+    nginx dynamic module.
+
+ -- Tim Ansell <me@mith.ro>  Sat, 07 Feb 2026 16:34:13 +1030

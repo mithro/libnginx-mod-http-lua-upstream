@@ -1,0 +1,25 @@
+Source: libnginx-mod-http-lua-upstream
+Section: httpd
+Priority: optional
+Maintainer: Tim Ansell <me@mith.ro>
+Build-Depends: debhelper-compat (= 13),
+               dh-sequence-nginx,
+               libluajit2-5.1-dev,
+Standards-Version: 4.7.2
+Homepage: https://github.com/openresty/lua-upstream-nginx-module
+Rules-Requires-Root: no
+
+Package: libnginx-mod-http-lua-upstream
+Architecture: any
+Multi-Arch: foreign
+Depends: libnginx-mod-http-lua,
+         ${misc:Depends},
+         ${shlibs:Depends},
+Recommends: nginx,
+Description: Lua upstream API module for Nginx
+ Exposes a Lua API for querying and manipulating Nginx upstream server
+ groups at runtime. Provides ngx.upstream with functions to list upstreams,
+ inspect peers, and dynamically mark peers as up or down.
+ .
+ Required by lua-resty-upstream-healthcheck for active health monitoring
+ of upstream backends.
