@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Tim Ansell <me@mith.ro>
 Build-Depends: debhelper-compat (= 13),
                dh-sequence-nginx,
-               libluajit2-5.1-dev,
+               libluajit-5.1-dev | libluajit2-5.1-dev,
 Standards-Version: 4.7.2
 Homepage: https://github.com/openresty/lua-upstream-nginx-module
 Rules-Requires-Root: no

@@ -11,7 +11,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [amd64, arm64]
+        include:
+          - distro: debian-sid
+            image: debian:sid
+            arch: arm64
+          - distro: debian-sid
+            image: debian:sid
+            arch: amd64
+          - distro: ubuntu-24.04
+            image: ubuntu:24.04
+            arch: amd64
+          - distro: ubuntu-24.04
+            image: ubuntu:24.04
+            arch: arm64
 
     steps:
       - uses: actions/checkout@v4
@@ -20,19 +32,22 @@ jobs:
         if: matrix.arch != 'amd64'
         uses: docker/setup-qemu-action@v3
 
-      - name: Build Debian package (${{ matrix.arch }})
+      - name: Build Debian package (${{ matrix.distro }} ${{ matrix.arch }})
         run: |
           mkdir -p output
           docker run --rm \
             --platform linux/${{ matrix.arch }} \
             -v "$PWD/debian:/src/debian:ro" \
             -v "$PWD/output:/output" \
-            ubuntu:24.04 bash -exc '
+            ${{ matrix.image }} bash -exc '
               # Install build dependencies
               apt-get update
               apt-get install -y --no-install-recommends \
                 build-essential dpkg-dev debhelper dh-sequence-nginx \
-                libluajit2-5.1-dev quilt wget ca-certificates
+                quilt wget ca-certificates
+              # LuaJIT dev package name differs: Debian=libluajit-5.1-dev, Ubuntu=libluajit2-5.1-dev
+              apt-get install -y --no-install-recommends libluajit-5.1-dev || \
+                apt-get install -y --no-install-recommends libluajit2-5.1-dev
 
               # Download upstream source
               mkdir -p /build
@@ -77,5 +92,5 @@ jobs:
       - name: Upload Debian package
         uses: actions/upload-artifact@v4
         with:
-          name: debian-package-${{ matrix.arch }}
+          name: debian-package-${{ matrix.distro }}-${{ matrix.arch }}
           path: output/*.deb
